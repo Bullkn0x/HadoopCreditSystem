@@ -1,0 +1,37 @@
+create database if not EXISTS creditsystem1;
+use creditsystem1;
+
+Drop Table IF EXISTS branch;
+Drop table IF EXISTS customer;
+Drop table IF EXISTS creditcard;
+
+use creditsystem1;
+Create External Table branch(branch_code int, branch_name String,
+									branch_street String, branch_city String,
+									branch_state String, branch_zip int, branch_phone String,
+									last_updated timestamp)
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' LINES TERMINATED BY '\n'
+location '/user/maria_dev/creditsystem1/branch';
+
+use creditsystem1;
+Create External Table IF NOT EXISTS creditcard(transaction_Id int, timeid int,
+													credit String, ssn int, branch_code int,
+									transaction_type String, transaction_value double, last_updated timestamp)
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' LINES TERMINATED BY '\n'
+location '/user/maria_dev/creditsystem1/creditcard';
+
+
+use creditsystem1;
+Create External Table IF NOT EXISTS customer(fname string, mname String, lname String,
+									ssn int, credit String, address String,
+									cust_city String, cust_state String, cust_country String,
+									cust_zip String, cust_phone String, cust_email String,
+												last_updated timestamp)
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' LINES TERMINATED BY '\n'
+location '/user/maria_dev/creditsystem1/customer';
+
+use creditsystem1;
+CREATE EXTERNAL TABLE IF NOT EXISTS timetable(transactionid int,timeid int, day int, month int, year int, quarter
+                          												 string, last_updated TIMESTAMP )
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' LINES TERMINATED BY '\n'
+location '/user/maria_dev/creditsystem1/timetable';

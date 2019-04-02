@@ -1,0 +1,47 @@
+SET hive.exec.dynamic.partition = true;
+SET hive.exec.dynamic.partition.mode = nonstrict;
+use creditsystem1;
+Create Table if not exists branch_internal(
+  branch_code int, branch_name String,
+  branch_street String, branch_city String, branch_zip int,
+  branch_phone String, last_updated timestamp)
+
+partitioned by (branch_state String)
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
+LINES TERMINATED BY '\n'
+STORED AS ORC;
+
+Create Table if not exists creditcard_internal(
+  transaction_Id int, timeid int,
+  credit String, ssn int, branch_code int,
+  transaction_value double , last_updated timestamp
+  )
+
+partitioned by (transaction_type String)
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
+LINES TERMINATED BY '\n'
+STORED AS ORC;
+
+
+Create Table IF NOT EXISTS customer_internal(
+  fname string, mname String,
+  lname String,
+ssn int, credit String, address String,
+  cust_city String,
+  cust_country String,
+  cust_zip String, cust_phone String,
+  cust_email String, last_updated TIMESTAMP)
+
+partitioned by (cust_state String)
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
+LINES TERMINATED BY '\n'
+STORED AS ORC;
+
+
+use creditsystem1;
+CREATE TABLE IF NOT EXISTS timetable_internal(transactionid int,timeid int, day int, month int, year int, last_updated TIMESTAMP)
+
+partitioned by (quarter String)
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
+LINES TERMINATED BY '\n'
+STORED AS ORC;

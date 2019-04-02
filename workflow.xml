@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow-app xmlns = "uri:oozie:workflow:0.2" name = "copy data from external to orc">
+
+  <start to = "customerSqoop" />
+
+  <!-- customer sqoop pull -->
+    <action name="customerSqoop">
+       <sqoop xmlns="uri:oozie:sqoop-action:0.2">
+         <job-tracker>${jobTracker}</job-tracker>
+           <name-node>${nameNode}</name-node>
+           <prepare>
+               <delete path="${nameNode}/user/maria_dev/creditsystem1/customer"/>
+           </prepare>
+          <configuration>
+               <property>
+                   <name>mapred.job.queue.name</name>
+                   <value>${queueName}</value>
+               </property>
+           </configuration>
+           <command>job --meta-connect jdbc:hsqldb:hsql://localhost:16000/sqoop --exec customerSqoop</command>
+
+             <archive>/user/oozie/share/lib/lib_20161025075203/sqoop/java-json.jar</archive>
+       </sqoop>
+       <ok to = "branchSqoop" />
+       <error to = "kill_job" />
+    </action>
+
+<!--  branch sqoop pull -->
+    <action name="branchSqoop">
+       <sqoop xmlns="uri:oozie:sqoop-action:0.2">
+         <job-tracker>${jobTracker}</job-tracker>
+           <name-node>${nameNode}</name-node>
+           <prepare>
+               <delete path="${nameNode}/user/maria_dev/creditsystem1/branch"/>
+           </prepare>
+          <configuration>
+               <property>
+                   <name>mapred.job.queue.name</name>
+                   <value>${queueName}</value>
+               </property>
+           </configuration>
+           <command>job --meta-connect jdbc:hsqldb:hsql://localhost:16000/sqoop --exec branchSqoop</command>
+             <archive>/user/oozie/share/lib/lib_20161025075203/sqoop/java-json.jar</archive>
+
+       </sqoop>
+       <ok to = "creditcardSqoop" />
+       <error to = "kill_job" />
+    </action>
+
+    <!--  creditcard sqoop pull-->
+
+    <action name="creditcardSqoop">
+       <sqoop xmlns="uri:oozie:sqoop-action:0.2">
+         <job-tracker>${jobTracker}</job-tracker>
+           <name-node>${nameNode}</name-node>
+           <prepare>
+               <delete path="${nameNode}/user/maria_dev/creditsystem1/creditcard"/>
+           </prepare>
+          <configuration>
+               <property>
+                   <name>mapred.job.queue.name</name>
+                   <value>${queueName}</value>
+               </property>
+           </configuration>
+          <command>job --meta-connect jdbc:hsqldb:hsql://localhost:16000/sqoop --exec creditcardSqoop</command>
+             <archive>/user/oozie/share/lib/lib_20161025075203/sqoop/java-json.jar</archive>
+
+       </sqoop>
+       <ok to = "timetableSqoop" />
+       <error to = "kill_job" />
+    </action>
+
+
+<!--  timetable sqoop pull -->
+
+
+<action name="timetableSqoop">
+   <sqoop xmlns="uri:oozie:sqoop-action:0.2">
+     <job-tracker>${jobTracker}</job-tracker>
+       <name-node>${nameNode}</name-node>
+       <prepare>
+           <delete path="${nameNode}/user/maria_dev/creditsystem1/timetable"/>
+       </prepare>
+      <configuration>
+           <property>
+               <name>mapred.job.queue.name</name>
+               <value>${queueName}</value>
+           </property>
+       </configuration>
+       <command>job --meta-connect jdbc:hsqldb:hsql://localhost:16000/sqoop --exec timetableSqoop</command>
+         <archive>/user/oozie/share/lib/lib_20161025075203/sqoop/java-json.jar</archive>
+
+   </sqoop>
+   <ok to = "Create_External_Tables" />
+   <error to = "kill_job" />
+</action>
+
+<!--  Create External Tables for data-->
+
+<action name = "Create_External_Tables">
+   <hive xmlns = "uri:oozie:hive-action:0.4">
+      <job-tracker>${jobTracker}</job-tracker>
+      <name-node>${nameNode}</name-node>
+      <script>${nameNode}/user/maria_dev/creditsystem1/externaltables.hive</script>
+   </hive>
+
+   <ok to = "Create_Internal_Tables" />
+   <error to = "kill_job" />
+</action>
+
+<!--  Create internal Tables with partitions -->
+   <action name = "Create_Internal_Tables">
+      <hive xmlns = "uri:oozie:hive-action:0.4">
+        <job-tracker>${jobTracker}</job-tracker>
+         <name-node>${nameNode}</name-node>
+
+         <script>${nameNode}/user/maria_dev/creditsystem1/internaltables.hive</script>
+      </hive>
+      <ok to = "Insert_into_Tables" />
+      <error to = "kill_job" />
+   </action>
+
+   <!-- insert into internal table  -->
+   <action name = "Insert_into_Tables">
+      <hive xmlns = "uri:oozie:hive-action:0.4">
+         <job-tracker>${jobTracker}</job-tracker>
+         <name-node>${nameNode}</name-node>
+
+         <script>${nameNode}/user/maria_dev/creditsystem1/Copydata.hql</script>
+
+      </hive>
+
+      <ok to = "end" />
+      <error to = "kill_job" />
+   </action>
+
+   <kill name = "kill_job">
+      <message>Job failed</message>
+   </kill>
+   <end name = "end" />
+</workflow-app>
